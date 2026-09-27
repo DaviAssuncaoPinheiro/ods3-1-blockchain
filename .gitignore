@@ -1,0 +1,14 @@
+node_modules/
+
+.next/
+next-env.d.ts
+out/
+
+artifacts/
+cache/
+typechain-types/
+coverage/
+
+.env*.local
+*.tsbuildinfo
+.DS_Store
