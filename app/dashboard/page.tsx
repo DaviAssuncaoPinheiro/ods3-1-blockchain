@@ -24,24 +24,24 @@ export default function DashboardPage() {
   return (
     <>
       <PageHeader
-        title="Dashboard"
-        description="Digital product passports shared by manufacturers, retailers, service centers and consumers on a local blockchain."
+        title="Painel"
+        description="Passaportes digitais de produtos compartilhados por fabricantes, varejistas, assistências técnicas e consumidores em uma blockchain local."
       />
       <div className="flex flex-col gap-6">
         <NetworkMetrics totalTransactions={totalTransactions} />
         <AccountPanel />
         <Panel
-          title="Recent activity"
+          title="Atividade recente"
           action={
             <Link
               href={ROUTES.explorer}
               className="text-sm font-medium text-accent hover:text-accent-strong"
             >
-              Open explorer
+              Abrir explorador
             </Link>
           }
         >
-          <AsyncContent query={recentTransactions} emptyMessage="No transactions yet.">
+          <AsyncContent query={recentTransactions} emptyMessage="Nenhuma transação ainda.">
             {(items) => <TransactionTable transactions={items} />}
           </AsyncContent>
         </Panel>

@@ -1,14 +1,15 @@
 import { APPLICATION_EVENT_LABELS } from "@/constants/explorer";
 import type { ApplicationTransaction } from "@/types/blockchain";
 import { DataTable, NUMERIC_CELL_CLASSES, type DataTableColumn } from "@/components/ui/DataTable";
+import { ParticipantValue } from "@/components/participants/ParticipantValue";
 import { MonoValue } from "@/components/ui/MonoValue";
 
 const COLUMNS: DataTableColumn[] = [
-  { label: "Event" },
-  { label: "Details" },
-  { label: "Sender" },
-  { label: "Transaction hash" },
-  { label: "Block", isNumeric: true },
+  { label: "Evento" },
+  { label: "Detalhes" },
+  { label: "Remetente" },
+  { label: "Hash da transação" },
+  { label: "Bloco", isNumeric: true },
 ];
 
 export function TransactionTable({ transactions }: { transactions: ApplicationTransaction[] }) {
@@ -21,7 +22,7 @@ export function TransactionTable({ transactions }: { transactions: ApplicationTr
           </td>
           <td>{transaction.summary}</td>
           <td>
-            <MonoValue value={transaction.actor} format="address" />
+            <ParticipantValue address={transaction.actor} isCompact />
           </td>
           <td>
             <MonoValue value={transaction.transactionHash} format="hash" />

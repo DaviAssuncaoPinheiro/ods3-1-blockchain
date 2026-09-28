@@ -1,19 +1,14 @@
 [
   {
-    "inputs": [],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
-  },
-  {
     "inputs": [
       {
-        "internalType": "uint256",
-        "name": "maxLength",
-        "type": "uint256"
+        "internalType": "string",
+        "name": "adminName",
+        "type": "string"
       }
     ],
-    "name": "DescriptionTooLong",
-    "type": "error"
+    "stateMutability": "nonpayable",
+    "type": "constructor"
   },
   {
     "inputs": [
@@ -24,6 +19,22 @@
       }
     ],
     "name": "EmptyField",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "field",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "maxLength",
+        "type": "uint256"
+      }
+    ],
+    "name": "FieldTooLong",
     "type": "error"
   },
   {
@@ -105,6 +116,17 @@
       }
     ],
     "name": "RoleAlreadyGranted",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "field",
+        "type": "string"
+      }
+    ],
+    "name": "UntrimmedField",
     "type": "error"
   },
   {
@@ -238,6 +260,12 @@
         "internalType": "address",
         "name": "grantedBy",
         "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "participantName",
+        "type": "string"
       }
     ],
     "name": "RoleGranted",
@@ -246,6 +274,19 @@
   {
     "inputs": [],
     "name": "MAX_DESCRIPTION_LENGTH",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "MAX_TEXT_LENGTH",
     "outputs": [
       {
         "internalType": "uint256",
@@ -371,6 +412,11 @@
             "type": "uint8"
           },
           {
+            "internalType": "enum ProductPass.ProductStatus",
+            "name": "status",
+            "type": "uint8"
+          },
+          {
             "internalType": "address",
             "name": "actor",
             "type": "address"
@@ -405,6 +451,11 @@
         "internalType": "enum ProductPass.Role",
         "name": "role",
         "type": "uint8"
+      },
+      {
+        "internalType": "string",
+        "name": "name",
+        "type": "string"
       }
     ],
     "name": "grantRole",
@@ -431,6 +482,25 @@
         "internalType": "bool",
         "name": "",
         "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "participantNames",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "name",
+        "type": "string"
       }
     ],
     "stateMutability": "view",

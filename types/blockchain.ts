@@ -28,6 +28,7 @@ export type ChainStatus =
 
 export interface RoleGrant {
   account: string;
+  participantName: string;
   roleLabel: string;
   grantedBy: string;
   blockNumber: number;

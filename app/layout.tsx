@@ -10,12 +10,12 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "ProductPass",
-  description: "Blockchain-based product traceability, authenticity and warranty.",
+  description: "Rastreabilidade, autenticidade e garantia de produtos em blockchain.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
+    <html lang="pt-BR" className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <body className="font-sans antialiased">
         <AppProviders>
           <AppShell>{children}</AppShell>

@@ -54,17 +54,17 @@ function SubmitControl({ submitLabel, isBusy }: { submitLabel: string; isBusy: b
   const wallet = useWallet();
 
   if (wallet.status === "unavailable") {
-    return <Button disabled>Install MetaMask to continue</Button>;
+    return <Button disabled>Instale a MetaMask para continuar</Button>;
   }
   if (wallet.status !== "connected") {
     return (
       <Button onClick={wallet.connect} isLoading={wallet.status === "connecting"}>
-        Connect Wallet
+        Conectar carteira
       </Button>
     );
   }
   if (!wallet.isOnExpectedNetwork) {
-    return <Button onClick={wallet.switchNetwork}>Switch to {LOCAL_NETWORK_NAME}</Button>;
+    return <Button onClick={wallet.switchNetwork}>Trocar para {LOCAL_NETWORK_NAME}</Button>;
   }
   return (
     <Button type="submit" isLoading={isBusy}>
@@ -79,8 +79,8 @@ function MissingRoleWarning({ requiredRole }: { requiredRole: Role }) {
   if (!isRelevant || wallet.hasRole(requiredRole)) return null;
 
   return (
-    <Notice tone="warning" title={`This account does not have the ${ROLE_LABELS[requiredRole]} role`}>
-      The contract will reject this transaction. Switch to an authorized account in MetaMask.
+    <Notice tone="warning" title={`Esta conta não possui o papel ${ROLE_LABELS[requiredRole]}`}>
+      O contrato vai rejeitar esta transação. Troque para uma conta autorizada na MetaMask.
     </Notice>
   );
 }

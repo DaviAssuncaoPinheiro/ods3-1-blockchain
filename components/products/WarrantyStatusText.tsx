@@ -6,9 +6,9 @@ const WARRANTY_DISPLAY: Record<
   WarrantyStatus,
   { label: string; className: string; icon: typeof InfoIcon }
 > = {
-  Active: { label: "Active", className: "text-success", icon: CheckCircleIcon },
-  Expired: { label: "Expired", className: "text-danger", icon: AlertIcon },
-  NotStarted: { label: "Not started — product not sold yet", className: "text-ink-muted", icon: InfoIcon },
+  Active: { label: "Ativa", className: "text-success", icon: CheckCircleIcon },
+  Expired: { label: "Expirada", className: "text-danger", icon: AlertIcon },
+  NotStarted: { label: "Não iniciada: produto ainda não vendido", className: "text-ink-muted", icon: InfoIcon },
 };
 
 export function WarrantyStatusText({ product }: { product: Product }) {

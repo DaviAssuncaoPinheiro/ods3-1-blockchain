@@ -36,8 +36,11 @@ contract ProductPass {
         uint256 maintenanceCount;
     }
 
+    /// @dev `status` is the product status right after the event, so the history keeps every
+    /// status the product went through even when a later event replaces the current one.
     struct HistoryEntry {
         HistoryEventType eventType;
+        ProductStatus status;
         address actor;
         uint256 timestamp;
         string details;
@@ -45,15 +48,25 @@ contract ProductPass {
 
     uint256 public constant SECONDS_PER_MONTH = 30 days;
     uint256 public constant MAX_WARRANTY_MONTHS = 120;
+    /// @dev Text limits are in bytes (UTF-8): accented letters take 2 bytes.
+    uint256 public constant MAX_TEXT_LENGTH = 64;
     uint256 public constant MAX_DESCRIPTION_LENGTH = 140;
 
     uint256 public totalProducts;
+
+    /// @notice Public name of each participant, required when a role is granted.
+    mapping(address account => string name) public participantNames;
 
     mapping(address account => mapping(Role role => bool granted)) private roles;
     mapping(bytes32 productKey => Product product) private products;
     mapping(bytes32 productKey => HistoryEntry[] entries) private histories;
 
-    event RoleGranted(address indexed account, Role indexed role, address indexed grantedBy);
+    event RoleGranted(
+        address indexed account,
+        Role indexed role,
+        address indexed grantedBy,
+        string participantName
+    );
     event ProductRegistered(
         bytes32 indexed productKey,
         string productId,
@@ -80,11 +93,12 @@ contract ProductPass {
     error RoleAlreadyGranted(address account, Role role);
     error InvalidAccount();
     error EmptyField(string field);
+    error FieldTooLong(string field, uint256 maxLength);
+    error UntrimmedField(string field);
     error ProductAlreadyExists(string productId);
     error ProductNotFound(string productId);
     error ProductAlreadySold(string productId);
     error InvalidWarrantyDuration(uint256 months);
-    error DescriptionTooLong(uint256 maxLength);
 
     modifier onlyRole(Role role) {
         if (!roles[msg.sender][role]) revert MissingRole(msg.sender, role);
@@ -96,14 +110,17 @@ contract ProductPass {
         _;
     }
 
-    constructor() {
-        _grantRole(msg.sender, Role.Admin);
+    constructor(string memory adminName) {
+        _requireValidText(adminName, "participantName", MAX_TEXT_LENGTH);
+        _grantRole(msg.sender, Role.Admin, adminName);
     }
 
-    function grantRole(address account, Role role) external onlyRole(Role.Admin) {
+    /// @notice Authorizes `account` for `role`. The name is required and replaces any previous one.
+    function grantRole(address account, Role role, string calldata name) external onlyRole(Role.Admin) {
         if (account == address(0)) revert InvalidAccount();
         if (roles[account][role]) revert RoleAlreadyGranted(account, role);
-        _grantRole(account, role);
+        _requireValidText(name, "participantName", MAX_TEXT_LENGTH);
+        _grantRole(account, role, name);
     }
 
     function registerProduct(
@@ -112,10 +129,10 @@ contract ProductPass {
         string calldata name,
         string calldata model
     ) external onlyRole(Role.Manufacturer) {
-        _requireNotEmpty(productId, "productId");
-        _requireNotEmpty(serialNumber, "serialNumber");
-        _requireNotEmpty(name, "name");
-        _requireNotEmpty(model, "model");
+        _requireValidText(productId, "productId", MAX_TEXT_LENGTH);
+        _requireValidText(serialNumber, "serialNumber", MAX_TEXT_LENGTH);
+        _requireValidText(name, "name", MAX_TEXT_LENGTH);
+        _requireValidText(model, "model", MAX_TEXT_LENGTH);
 
         bytes32 key = _keyOf(productId);
         if (_exists(key)) revert ProductAlreadyExists(productId);
@@ -130,10 +147,12 @@ contract ProductPass {
         product.status = ProductStatus.Manufactured;
         totalProducts++;
 
-        _appendHistory(key, HistoryEventType.Registered, "");
+        _appendHistory(key, HistoryEventType.Registered, ProductStatus.Manufactured, "");
         emit ProductRegistered(key, productId, serialNumber, msg.sender, block.timestamp);
     }
 
+    /// @notice Records the sale and starts the warranty. The current status becomes Sold even if
+    /// the product was serviced before; the earlier status stays in the history.
     function registerSale(
         string calldata productId,
         uint256 warrantyMonths
@@ -150,7 +169,7 @@ contract ProductPass {
         product.warrantyExpiresAt = block.timestamp + warrantyMonths * SECONDS_PER_MONTH;
         product.status = ProductStatus.Sold;
 
-        _appendHistory(key, HistoryEventType.Sold, "");
+        _appendHistory(key, HistoryEventType.Sold, ProductStatus.Sold, "");
         emit ProductSold(key, productId, msg.sender, product.warrantyExpiresAt, block.timestamp);
     }
 
@@ -158,17 +177,14 @@ contract ProductPass {
         string calldata productId,
         string calldata description
     ) external onlyRole(Role.ServiceCenter) onlyExistingProduct(productId) {
-        _requireNotEmpty(description, "description");
-        if (bytes(description).length > MAX_DESCRIPTION_LENGTH) {
-            revert DescriptionTooLong(MAX_DESCRIPTION_LENGTH);
-        }
+        _requireValidText(description, "description", MAX_DESCRIPTION_LENGTH);
 
         bytes32 key = _keyOf(productId);
         Product storage product = products[key];
         product.maintenanceCount++;
         product.status = ProductStatus.Serviced;
 
-        _appendHistory(key, HistoryEventType.Maintenance, description);
+        _appendHistory(key, HistoryEventType.Maintenance, ProductStatus.Serviced, description);
         emit MaintenanceRegistered(key, productId, msg.sender, description, block.timestamp);
     }
 
@@ -188,13 +204,19 @@ contract ProductPass {
         return roles[account][role];
     }
 
-    function _grantRole(address account, Role role) private {
+    function _grantRole(address account, Role role, string memory name) private {
         roles[account][role] = true;
-        emit RoleGranted(account, role, msg.sender);
+        participantNames[account] = name;
+        emit RoleGranted(account, role, msg.sender, name);
     }
 
-    function _appendHistory(bytes32 key, HistoryEventType eventType, string memory details) private {
-        histories[key].push(HistoryEntry(eventType, msg.sender, block.timestamp, details));
+    function _appendHistory(
+        bytes32 key,
+        HistoryEventType eventType,
+        ProductStatus status,
+        string memory details
+    ) private {
+        histories[key].push(HistoryEntry(eventType, status, msg.sender, block.timestamp, details));
     }
 
     function _exists(bytes32 key) private view returns (bool) {
@@ -205,7 +227,16 @@ contract ProductPass {
         return keccak256(bytes(productId));
     }
 
-    function _requireNotEmpty(string calldata value, string memory field) private pure {
-        if (bytes(value).length == 0) revert EmptyField(field);
+    /// @dev Required, at most `maxLength` bytes, and without leading or trailing whitespace
+    /// (which also rejects values made only of spaces).
+    function _requireValidText(string memory value, string memory field, uint256 maxLength) private pure {
+        bytes memory raw = bytes(value);
+        if (raw.length == 0) revert EmptyField(field);
+        if (raw.length > maxLength) revert FieldTooLong(field, maxLength);
+        if (_isWhitespace(raw[0]) || _isWhitespace(raw[raw.length - 1])) revert UntrimmedField(field);
+    }
+
+    function _isWhitespace(bytes1 char) private pure returns (bool) {
+        return char == 0x20 || char == 0x09 || char == 0x0A || char == 0x0D;
     }
 }

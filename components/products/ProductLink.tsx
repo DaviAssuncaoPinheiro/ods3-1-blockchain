@@ -9,7 +9,7 @@ export function ProductLink({ productId }: { productId: string }) {
       href={productLookupPath(productId)}
       className="inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:text-accent-strong"
     >
-      View product
+      Ver produto
       <ArrowRightIcon width={16} height={16} />
     </Link>
   );

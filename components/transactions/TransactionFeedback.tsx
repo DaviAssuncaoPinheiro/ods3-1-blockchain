@@ -15,27 +15,27 @@ export function TransactionFeedback({ state, successAction }: TransactionFeedbac
     case "idle":
       return null;
     case "awaitingSignature":
-      return <Progress label="Confirm the transaction in MetaMask…" />;
+      return <Progress label="Confirme a transação na MetaMask…" />;
     case "confirming":
-      return <Progress label="Waiting for the block confirmation…" hash={state.hash} />;
+      return <Progress label="Aguardando a confirmação do bloco…" hash={state.hash} />;
     case "confirmed":
       return (
         <Notice
           tone="success"
           title={
             state.blockNumber === null
-              ? "Transaction confirmed"
-              : `Transaction confirmed in block ${state.blockNumber}`
+              ? "Transação confirmada"
+              : `Transação confirmada no bloco ${state.blockNumber}`
           }
           action={successAction}
         >
-          <span className="text-ink-muted">Transaction hash </span>
+          <span className="text-ink-muted">Hash da transação </span>
           <MonoValue value={state.hash} />
         </Notice>
       );
     case "failed":
       return (
-        <Notice tone="danger" title="Operation rejected">
+        <Notice tone="danger" title="Operação rejeitada">
           {state.message}
         </Notice>
       );

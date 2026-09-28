@@ -100,9 +100,9 @@ export function useWalletConnection() {
   const isOnExpectedNetwork = state.chainId === EXPECTED_CHAIN_ID;
 
   const getSigner = useCallback(async (): Promise<JsonRpcSigner> => {
-    if (state.status !== "connected") throw new UserFacingError("Connect your wallet first.");
+    if (state.status !== "connected") throw new UserFacingError("Conecte sua carteira primeiro.");
     if (!isOnExpectedNetwork) {
-      throw new UserFacingError("Switch MetaMask to the local Hardhat network first.");
+      throw new UserFacingError("Troque a MetaMask para a rede local do Hardhat primeiro.");
     }
     return getWalletSigner(requireInjectedProvider());
   }, [state.status, isOnExpectedNetwork]);

@@ -18,20 +18,20 @@ export default function ExplorerPage() {
   return (
     <>
       <PageHeader
-        title="Blockchain Explorer"
-        description="Each block stores the hash of the previous one. Changing an old record would change every hash after it, which is what makes the history tamper-evident."
+        title="Explorador da blockchain"
+        description="Cada bloco guarda o hash do bloco anterior. Alterar um registro antigo mudaria todos os hashes seguintes, e é isso que torna qualquer adulteração do histórico detectável."
       />
       <div className="flex flex-col gap-6">
-        <Panel title="Latest blocks" description="Updates automatically when a new block is mined.">
-          <AsyncContent query={blocks} emptyMessage="No blocks yet.">
+        <Panel title="Últimos blocos" description="Atualiza automaticamente quando um novo bloco é minerado.">
+          <AsyncContent query={blocks} emptyMessage="Nenhum bloco ainda.">
             {(items) => <BlockTable blocks={items} />}
           </AsyncContent>
         </Panel>
         <Panel
-          title="Application transactions"
-          description="Most recent ProductPass contract events, newest first."
+          title="Transações da aplicação"
+          description="Eventos mais recentes do contrato ProductPass, do mais novo para o mais antigo."
         >
-          <AsyncContent query={transactions} emptyMessage="No transactions yet.">
+          <AsyncContent query={transactions} emptyMessage="Nenhuma transação ainda.">
             {(items) => <TransactionTable transactions={items} />}
           </AsyncContent>
         </Panel>

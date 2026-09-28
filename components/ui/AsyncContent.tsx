@@ -11,7 +11,7 @@ interface AsyncContentProps<T> {
 export function AsyncContent<T>({ query, emptyMessage, children }: AsyncContentProps<T>) {
   if (query.error) return <p className="text-sm text-danger">{query.error}</p>;
   if (!query.data) {
-    return <Placeholder>{query.isLoading ? "Loading…" : "Waiting for the blockchain."}</Placeholder>;
+    return <Placeholder>{query.isLoading ? "Carregando…" : "Aguardando a blockchain."}</Placeholder>;
   }
   if (query.data.length === 0) return <Placeholder>{emptyMessage}</Placeholder>;
   return <>{children(query.data)}</>;

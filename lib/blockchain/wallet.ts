@@ -13,7 +13,7 @@ export function getInjectedProvider(): InjectedEthereumProvider | null {
 
 export function requireInjectedProvider(): InjectedEthereumProvider {
   const provider = getInjectedProvider();
-  if (!provider) throw new UserFacingError("MetaMask is not installed in this browser.");
+  if (!provider) throw new UserFacingError("A MetaMask não está instalada neste navegador.");
   return provider;
 }
 

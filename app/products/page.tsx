@@ -16,8 +16,8 @@ export default function ProductsPage() {
   return (
     <>
       <PageHeader
-        title="Product Lookup"
-        description="Anyone can verify a product's digital passport. No wallet or role is needed to consult the blockchain."
+        title="Consulta de produto"
+        description="Qualquer pessoa pode verificar o passaporte digital de um produto. Não é preciso carteira nem papel para consultar a blockchain."
       />
       <Suspense>
         <ProductLookup />
@@ -44,22 +44,22 @@ function ProductResult({ productId }: { productId: string }) {
   );
 
   if (!isContractReady) return null;
-  if (error) return <Notice tone="danger" title="Could not load the product">{error}</Notice>;
+  if (error) return <Notice tone="danger" title="Não foi possível carregar o produto">{error}</Notice>;
   if (isLoading && passport === null) {
-    return <p className="text-sm text-ink-muted">Searching the blockchain…</p>;
+    return <p className="text-sm text-ink-muted">Buscando na blockchain…</p>;
   }
   if (!passport) {
     return (
-      <Notice tone="warning" title={`No product registered with ID "${productId}"`}>
-        This product has no record on the blockchain. It was not registered by an authorized
-        manufacturer, or the ID is wrong.
+      <Notice tone="warning" title={`Nenhum produto registrado com o ID "${productId}"`}>
+        Este produto não tem registro na blockchain. Ele não foi registrado por um fabricante
+        autorizado, ou o ID está incorreto. O ID diferencia maiúsculas de minúsculas.
       </Notice>
     );
   }
 
   return (
     <>
-      <ProductDetails product={passport.product} />
+      <ProductDetails product={passport.product} history={passport.history} />
       <ProductTimeline events={passport.history} />
     </>
   );

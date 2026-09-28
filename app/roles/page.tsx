@@ -7,11 +7,11 @@ export default function RolesPage() {
   return (
     <>
       <PageHeader
-        title="Participants"
-        description="The admin authorizes the addresses of manufacturers, retailers and service centers. Consumers need no role to consult products."
+        title="Participantes"
+        description="O administrador autoriza os endereços de fabricantes, varejistas e assistências técnicas. Consumidores não precisam de papel para consultar produtos."
       />
       <div className="flex flex-col gap-6">
-        <Panel title="Grant a role" description="Requires the Admin role.">
+        <Panel title="Conceder papel" description="Requer o papel Administrador.">
           <GrantRoleForm />
         </Panel>
         <RoleGrantList />

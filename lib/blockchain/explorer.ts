@@ -20,19 +20,19 @@ type EventDescriber = (args: LogDescription["args"]) => { summary: string; actor
 
 const EVENT_DESCRIBERS: Record<ApplicationEventName, EventDescriber> = {
   RoleGranted: (args) => ({
-    summary: `Granted ${roleLabel(args.role)} role to ${shortenAddress(args.account)}`,
+    summary: `Concedeu o papel ${roleLabel(args.role)} a ${args.participantName} (${shortenAddress(args.account)})`,
     actor: args.grantedBy,
   }),
   ProductRegistered: (args) => ({
-    summary: `Registered product ${args.productId}`,
+    summary: `Registrou o produto ${args.productId}`,
     actor: args.manufacturer,
   }),
   ProductSold: (args) => ({
-    summary: `Sold product ${args.productId}`,
+    summary: `Vendeu o produto ${args.productId}`,
     actor: args.retailer,
   }),
   MaintenanceRegistered: (args) => ({
-    summary: `Maintenance on product ${args.productId}`,
+    summary: `Manutenção no produto ${args.productId}`,
     actor: args.serviceCenter,
   }),
 };
@@ -93,5 +93,5 @@ function isApplicationEvent(name: string): name is ApplicationEventName {
 
 function roleLabel(value: bigint): string {
   const role = toRole(value);
-  return role === null ? "unknown" : ROLE_LABELS[role];
+  return role === null ? "desconhecido" : ROLE_LABELS[role];
 }

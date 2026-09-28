@@ -22,23 +22,23 @@ interface NavigationGroup {
 
 export const NAVIGATION: NavigationGroup[] = [
   {
-    title: "Overview",
+    title: "Visão geral",
     items: [
-      { href: ROUTES.dashboard, label: "Dashboard", icon: DashboardIcon },
-      { href: ROUTES.products, label: "Product Lookup", icon: SearchIcon },
-      { href: ROUTES.explorer, label: "Blockchain Explorer", icon: BlocksIcon },
+      { href: ROUTES.dashboard, label: "Painel", icon: DashboardIcon },
+      { href: ROUTES.products, label: "Consulta de produto", icon: SearchIcon },
+      { href: ROUTES.explorer, label: "Explorador da blockchain", icon: BlocksIcon },
     ],
   },
   {
-    title: "Operations",
+    title: "Operações",
     items: [
-      { href: ROUTES.registerProduct, label: "Register Product", icon: PackageIcon },
-      { href: ROUTES.registerSale, label: "Register Sale", icon: TagIcon },
-      { href: ROUTES.registerMaintenance, label: "Register Maintenance", icon: WrenchIcon },
+      { href: ROUTES.registerProduct, label: "Registrar produto", icon: PackageIcon },
+      { href: ROUTES.registerSale, label: "Registrar venda", icon: TagIcon },
+      { href: ROUTES.registerMaintenance, label: "Registrar manutenção", icon: WrenchIcon },
     ],
   },
   {
-    title: "Administration",
-    items: [{ href: ROUTES.roles, label: "Participants", icon: KeyIcon }],
+    title: "Administração",
+    items: [{ href: ROUTES.roles, label: "Participantes", icon: KeyIcon }],
   },
 ];

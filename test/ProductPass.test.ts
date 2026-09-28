@@ -1,11 +1,18 @@
 import { expect } from "chai";
 import { network } from "hardhat";
 
-const { ethers, networkHelpers } = await network.connect();
+const { ethers, networkHelpers } = await network.create();
 
 const Role = { Admin: 0, Manufacturer: 1, Retailer: 2, ServiceCenter: 3 } as const;
 const ProductStatus = { Manufactured: 0, Sold: 1, Serviced: 2 } as const;
 const HistoryEventType = { Registered: 0, Sold: 1, Maintenance: 2 } as const;
+
+const PARTICIPANT_NAMES = {
+  admin: "Network Admin",
+  manufacturer: "Aurora Devices",
+  retailer: "Central Store",
+  serviceCenter: "Quick Repair",
+};
 
 const SAMPLE_PRODUCT = {
   productId: "PP-0001",
@@ -16,19 +23,21 @@ const SAMPLE_PRODUCT = {
 const WARRANTY_MONTHS = 12n;
 const SECONDS_PER_MONTH = 30n * 24n * 60n * 60n;
 const MAINTENANCE_DESCRIPTION = "Battery replaced";
+const MAX_TEXT_LENGTH = 64;
+const MAX_DESCRIPTION_LENGTH = 140;
 
 async function deployFixture() {
   const [admin, manufacturer, retailer, serviceCenter, outsider] = await ethers.getSigners();
-  const productPass = await ethers.deployContract("ProductPass");
+  const productPass = await ethers.deployContract("ProductPass", [PARTICIPANT_NAMES.admin]);
   return { productPass, admin, manufacturer, retailer, serviceCenter, outsider };
 }
 
 async function configuredRolesFixture() {
   const context = await deployFixture();
   const { productPass, manufacturer, retailer, serviceCenter } = context;
-  await productPass.grantRole(manufacturer.address, Role.Manufacturer);
-  await productPass.grantRole(retailer.address, Role.Retailer);
-  await productPass.grantRole(serviceCenter.address, Role.ServiceCenter);
+  await productPass.grantRole(manufacturer.address, Role.Manufacturer, PARTICIPANT_NAMES.manufacturer);
+  await productPass.grantRole(retailer.address, Role.Retailer, PARTICIPANT_NAMES.retailer);
+  await productPass.grantRole(serviceCenter.address, Role.ServiceCenter, PARTICIPANT_NAMES.serviceCenter);
   return context;
 }
 
@@ -51,25 +60,39 @@ async function soldProductFixture() {
 
 describe("ProductPass", function () {
   describe("Roles", function () {
-    it("grants the admin role to the deployer", async function () {
+    it("grants the admin role and name to the deployer", async function () {
       const { productPass, admin } = await networkHelpers.loadFixture(deployFixture);
 
       expect(await productPass.hasRole(admin.address, Role.Admin)).to.equal(true);
+      expect(await productPass.participantNames(admin.address)).to.equal(PARTICIPANT_NAMES.admin);
     });
 
-    it("lets the admin grant the manufacturer role", async function () {
+    it("rejects a deployment without an admin name", async function () {
+      const factory = await ethers.getContractFactory("ProductPass");
+
+      await expect(factory.deploy(""))
+        .to.be.revertedWithCustomError(factory, "EmptyField")
+        .withArgs("participantName");
+    });
+
+    it("lets the admin grant the manufacturer role with a name", async function () {
       const { productPass, admin, manufacturer } = await networkHelpers.loadFixture(deployFixture);
 
-      await expect(productPass.grantRole(manufacturer.address, Role.Manufacturer))
+      await expect(
+        productPass.grantRole(manufacturer.address, Role.Manufacturer, PARTICIPANT_NAMES.manufacturer),
+      )
         .to.emit(productPass, "RoleGranted")
-        .withArgs(manufacturer.address, Role.Manufacturer, admin.address);
+        .withArgs(manufacturer.address, Role.Manufacturer, admin.address, PARTICIPANT_NAMES.manufacturer);
       expect(await productPass.hasRole(manufacturer.address, Role.Manufacturer)).to.equal(true);
+      expect(await productPass.participantNames(manufacturer.address)).to.equal(
+        PARTICIPANT_NAMES.manufacturer,
+      );
     });
 
     it("lets the admin grant the retailer role", async function () {
       const { productPass, retailer } = await networkHelpers.loadFixture(deployFixture);
 
-      await productPass.grantRole(retailer.address, Role.Retailer);
+      await productPass.grantRole(retailer.address, Role.Retailer, PARTICIPANT_NAMES.retailer);
 
       expect(await productPass.hasRole(retailer.address, Role.Retailer)).to.equal(true);
     });
@@ -77,15 +100,33 @@ describe("ProductPass", function () {
     it("lets the admin grant the service center role", async function () {
       const { productPass, serviceCenter } = await networkHelpers.loadFixture(deployFixture);
 
-      await productPass.grantRole(serviceCenter.address, Role.ServiceCenter);
+      await productPass.grantRole(serviceCenter.address, Role.ServiceCenter, PARTICIPANT_NAMES.serviceCenter);
 
       expect(await productPass.hasRole(serviceCenter.address, Role.ServiceCenter)).to.equal(true);
+    });
+
+    it("lets the admin grant another admin", async function () {
+      const { productPass, outsider } = await networkHelpers.loadFixture(deployFixture);
+
+      await productPass.grantRole(outsider.address, Role.Admin, "Second Admin");
+
+      expect(await productPass.hasRole(outsider.address, Role.Admin)).to.equal(true);
+    });
+
+    it("replaces the participant name when a new role is granted", async function () {
+      const { productPass, manufacturer } = await networkHelpers.loadFixture(configuredRolesFixture);
+
+      await productPass.grantRole(manufacturer.address, Role.Retailer, "Aurora Devices Store");
+
+      expect(await productPass.participantNames(manufacturer.address)).to.equal("Aurora Devices Store");
     });
 
     it("rejects role grants from non-admin accounts", async function () {
       const { productPass, outsider } = await networkHelpers.loadFixture(deployFixture);
 
-      await expect(productPass.connect(outsider).grantRole(outsider.address, Role.Manufacturer))
+      await expect(
+        productPass.connect(outsider).grantRole(outsider.address, Role.Manufacturer, "Outsider"),
+      )
         .to.be.revertedWithCustomError(productPass, "MissingRole")
         .withArgs(outsider.address, Role.Admin);
     });
@@ -94,8 +135,42 @@ describe("ProductPass", function () {
       const { productPass, manufacturer } = await networkHelpers.loadFixture(configuredRolesFixture);
 
       await expect(
-        productPass.grantRole(manufacturer.address, Role.Manufacturer),
+        productPass.grantRole(manufacturer.address, Role.Manufacturer, PARTICIPANT_NAMES.manufacturer),
       ).to.be.revertedWithCustomError(productPass, "RoleAlreadyGranted");
+    });
+
+    it("rejects the zero address", async function () {
+      const { productPass } = await networkHelpers.loadFixture(deployFixture);
+
+      await expect(
+        productPass.grantRole(ethers.ZeroAddress, Role.Manufacturer, "Nobody"),
+      ).to.be.revertedWithCustomError(productPass, "InvalidAccount");
+    });
+
+    it("rejects an empty participant name", async function () {
+      const { productPass, manufacturer } = await networkHelpers.loadFixture(deployFixture);
+
+      await expect(productPass.grantRole(manufacturer.address, Role.Manufacturer, ""))
+        .to.be.revertedWithCustomError(productPass, "EmptyField")
+        .withArgs("participantName");
+    });
+
+    it("rejects a participant name longer than the limit", async function () {
+      const { productPass, manufacturer } = await networkHelpers.loadFixture(deployFixture);
+
+      await expect(
+        productPass.grantRole(manufacturer.address, Role.Manufacturer, "x".repeat(MAX_TEXT_LENGTH + 1)),
+      )
+        .to.be.revertedWithCustomError(productPass, "FieldTooLong")
+        .withArgs("participantName", MAX_TEXT_LENGTH);
+    });
+
+    it("rejects a participant name made only of spaces", async function () {
+      const { productPass, manufacturer } = await networkHelpers.loadFixture(deployFixture);
+
+      await expect(productPass.grantRole(manufacturer.address, Role.Manufacturer, "   "))
+        .to.be.revertedWithCustomError(productPass, "UntrimmedField")
+        .withArgs("participantName");
     });
   });
 
@@ -110,6 +185,15 @@ describe("ProductPass", function () {
         .to.emit(productPass, "ProductRegistered")
         .withArgs(ethers.id(productId), productId, serialNumber, manufacturer.address, anyTimestamp);
       expect(await productPass.totalProducts()).to.equal(1n);
+    });
+
+    it("accepts fields with exactly the maximum length", async function () {
+      const { productPass, manufacturer } = await networkHelpers.loadFixture(configuredRolesFixture);
+      const maxText = "x".repeat(MAX_TEXT_LENGTH);
+
+      await expect(
+        productPass.connect(manufacturer).registerProduct(maxText, maxText, maxText, maxText),
+      ).to.emit(productPass, "ProductRegistered");
     });
 
     it("rejects a duplicated product", async function () {
@@ -134,22 +218,54 @@ describe("ProductPass", function () {
         .withArgs(outsider.address, Role.Manufacturer);
     });
 
-    it("rejects an empty product ID", async function () {
+    for (const field of ["productId", "serialNumber", "name", "model"] as const) {
+      it(`rejects an empty ${field}`, async function () {
+        const { productPass, manufacturer } = await networkHelpers.loadFixture(configuredRolesFixture);
+        const input = { ...SAMPLE_PRODUCT, [field]: "" };
+
+        await expect(
+          productPass
+            .connect(manufacturer)
+            .registerProduct(input.productId, input.serialNumber, input.name, input.model),
+        )
+          .to.be.revertedWithCustomError(productPass, "EmptyField")
+          .withArgs(field);
+      });
+
+      it(`rejects a ${field} longer than the limit`, async function () {
+        const { productPass, manufacturer } = await networkHelpers.loadFixture(configuredRolesFixture);
+        const input = { ...SAMPLE_PRODUCT, [field]: "x".repeat(MAX_TEXT_LENGTH + 1) };
+
+        await expect(
+          productPass
+            .connect(manufacturer)
+            .registerProduct(input.productId, input.serialNumber, input.name, input.model),
+        )
+          .to.be.revertedWithCustomError(productPass, "FieldTooLong")
+          .withArgs(field, MAX_TEXT_LENGTH);
+      });
+    }
+
+    it("rejects a field with leading or trailing whitespace", async function () {
       const { productPass, manufacturer } = await networkHelpers.loadFixture(configuredRolesFixture);
       const { serialNumber, name, model } = SAMPLE_PRODUCT;
 
-      await expect(productPass.connect(manufacturer).registerProduct("", serialNumber, name, model))
-        .to.be.revertedWithCustomError(productPass, "EmptyField")
+      await expect(productPass.connect(manufacturer).registerProduct(" PP-0001", serialNumber, name, model))
+        .to.be.revertedWithCustomError(productPass, "UntrimmedField")
+        .withArgs("productId");
+      await expect(productPass.connect(manufacturer).registerProduct("PP-0001\n", serialNumber, name, model))
+        .to.be.revertedWithCustomError(productPass, "UntrimmedField")
         .withArgs("productId");
     });
 
-    it("rejects an empty serial number", async function () {
+    it("counts the text limit in bytes, not characters", async function () {
       const { productPass, manufacturer } = await networkHelpers.loadFixture(configuredRolesFixture);
-      const { productId, name, model } = SAMPLE_PRODUCT;
+      const { productId, serialNumber, model } = SAMPLE_PRODUCT;
+      const accentedName = "ç".repeat(MAX_TEXT_LENGTH / 2 + 1); // 33 characters, 66 bytes
 
-      await expect(productPass.connect(manufacturer).registerProduct(productId, "", name, model))
-        .to.be.revertedWithCustomError(productPass, "EmptyField")
-        .withArgs("serialNumber");
+      await expect(productPass.connect(manufacturer).registerProduct(productId, serialNumber, accentedName, model))
+        .to.be.revertedWithCustomError(productPass, "FieldTooLong")
+        .withArgs("name", MAX_TEXT_LENGTH);
     });
   });
 
@@ -159,12 +275,35 @@ describe("ProductPass", function () {
 
       await expect(
         productPass.connect(retailer).registerSale(SAMPLE_PRODUCT.productId, WARRANTY_MONTHS),
-      ).to.emit(productPass, "ProductSold");
+      )
+        .to.emit(productPass, "ProductSold")
+        .withArgs(
+          ethers.id(SAMPLE_PRODUCT.productId),
+          SAMPLE_PRODUCT.productId,
+          retailer.address,
+          anyTimestamp,
+          anyTimestamp,
+        );
 
       const product = await productPass.getProduct(SAMPLE_PRODUCT.productId);
       expect(product.status).to.equal(ProductStatus.Sold);
       expect(product.soldAt).to.be.greaterThan(0n);
       expect(product.warrantyExpiresAt).to.equal(product.soldAt + WARRANTY_MONTHS * SECONDS_PER_MONTH);
+    });
+
+    it("accepts the minimum and maximum warranty", async function () {
+      const { productPass, manufacturer, retailer } =
+        await networkHelpers.loadFixture(registeredProductFixture);
+      await productPass.connect(manufacturer).registerProduct("PP-0002", "SN-2", "Watch", "W-1");
+
+      await expect(productPass.connect(retailer).registerSale(SAMPLE_PRODUCT.productId, 1n)).to.emit(
+        productPass,
+        "ProductSold",
+      );
+      await expect(productPass.connect(retailer).registerSale("PP-0002", 120n)).to.emit(
+        productPass,
+        "ProductSold",
+      );
     });
 
     it("rejects a sale by an account without the retailer role", async function () {
@@ -202,6 +341,14 @@ describe("ProductPass", function () {
         .to.be.revertedWithCustomError(productPass, "InvalidWarrantyDuration")
         .withArgs(0n);
     });
+
+    it("rejects a warranty above the maximum", async function () {
+      const { productPass, retailer } = await networkHelpers.loadFixture(registeredProductFixture);
+
+      await expect(productPass.connect(retailer).registerSale(SAMPLE_PRODUCT.productId, 121n))
+        .to.be.revertedWithCustomError(productPass, "InvalidWarrantyDuration")
+        .withArgs(121n);
+    });
   });
 
   describe("registerMaintenance", function () {
@@ -227,6 +374,26 @@ describe("ProductPass", function () {
       expect(product.status).to.equal(ProductStatus.Serviced);
     });
 
+    it("counts every maintenance", async function () {
+      const { productPass, serviceCenter } = await networkHelpers.loadFixture(soldProductFixture);
+      const serviceCenterPass = productPass.connect(serviceCenter);
+
+      await serviceCenterPass.registerMaintenance(SAMPLE_PRODUCT.productId, "Screen replaced");
+      await serviceCenterPass.registerMaintenance(SAMPLE_PRODUCT.productId, "Battery replaced");
+
+      const product = await productPass.getProduct(SAMPLE_PRODUCT.productId);
+      expect(product.maintenanceCount).to.equal(2n);
+    });
+
+    it("accepts a description with exactly the maximum length in bytes", async function () {
+      const { productPass, serviceCenter } = await networkHelpers.loadFixture(soldProductFixture);
+      const accentedDescription = "ã".repeat(MAX_DESCRIPTION_LENGTH / 2); // 70 characters, 140 bytes
+
+      await expect(
+        productPass.connect(serviceCenter).registerMaintenance(SAMPLE_PRODUCT.productId, accentedDescription),
+      ).to.emit(productPass, "MaintenanceRegistered");
+    });
+
     it("rejects maintenance by an account without the service center role", async function () {
       const { productPass, outsider } = await networkHelpers.loadFixture(soldProductFixture);
 
@@ -249,14 +416,46 @@ describe("ProductPass", function () {
         .withArgs("UNKNOWN");
     });
 
-    it("rejects a description longer than the limit", async function () {
+    it("rejects an empty description", async function () {
       const { productPass, serviceCenter } = await networkHelpers.loadFixture(soldProductFixture);
-      const maxLength = await productPass.MAX_DESCRIPTION_LENGTH();
-      const longDescription = "x".repeat(Number(maxLength) + 1);
+
+      await expect(productPass.connect(serviceCenter).registerMaintenance(SAMPLE_PRODUCT.productId, ""))
+        .to.be.revertedWithCustomError(productPass, "EmptyField")
+        .withArgs("description");
+    });
+
+    it("rejects a description longer than the limit in bytes", async function () {
+      const { productPass, serviceCenter } = await networkHelpers.loadFixture(soldProductFixture);
+      const accentedDescription = "ã".repeat(MAX_DESCRIPTION_LENGTH / 2 + 1); // 71 characters, 142 bytes
 
       await expect(
-        productPass.connect(serviceCenter).registerMaintenance(SAMPLE_PRODUCT.productId, longDescription),
-      ).to.be.revertedWithCustomError(productPass, "DescriptionTooLong");
+        productPass.connect(serviceCenter).registerMaintenance(SAMPLE_PRODUCT.productId, accentedDescription),
+      )
+        .to.be.revertedWithCustomError(productPass, "FieldTooLong")
+        .withArgs("description", MAX_DESCRIPTION_LENGTH);
+    });
+  });
+
+  describe("Status history", function () {
+    it("keeps the latest status but records every status in the history", async function () {
+      const { productPass, retailer, serviceCenter } =
+        await networkHelpers.loadFixture(registeredProductFixture);
+
+      await productPass
+        .connect(serviceCenter)
+        .registerMaintenance(SAMPLE_PRODUCT.productId, "Inspection before sale");
+      await productPass.connect(retailer).registerSale(SAMPLE_PRODUCT.productId, WARRANTY_MONTHS);
+
+      const product = await productPass.getProduct(SAMPLE_PRODUCT.productId);
+      expect(product.status).to.equal(ProductStatus.Sold);
+      expect(product.maintenanceCount).to.equal(1n);
+
+      const history = await productPass.getProductHistory(SAMPLE_PRODUCT.productId);
+      expect(history.map((entry) => entry.status)).to.deep.equal([
+        BigInt(ProductStatus.Manufactured),
+        BigInt(ProductStatus.Serviced),
+        BigInt(ProductStatus.Sold),
+      ]);
     });
   });
 
@@ -291,6 +490,11 @@ describe("ProductPass", function () {
         BigInt(HistoryEventType.Sold),
         BigInt(HistoryEventType.Maintenance),
       ]);
+      expect(history.map((entry) => entry.status)).to.deep.equal([
+        BigInt(ProductStatus.Manufactured),
+        BigInt(ProductStatus.Sold),
+        BigInt(ProductStatus.Serviced),
+      ]);
       expect(history.map((entry) => entry.actor)).to.deep.equal([
         manufacturer.address,
         retailer.address,
@@ -303,6 +507,9 @@ describe("ProductPass", function () {
       const { productPass } = await networkHelpers.loadFixture(deployFixture);
 
       await expect(productPass.getProduct("UNKNOWN"))
+        .to.be.revertedWithCustomError(productPass, "ProductNotFound")
+        .withArgs("UNKNOWN");
+      await expect(productPass.getProductHistory("UNKNOWN"))
         .to.be.revertedWithCustomError(productPass, "ProductNotFound")
         .withArgs("UNKNOWN");
     });
