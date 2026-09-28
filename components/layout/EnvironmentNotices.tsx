@@ -22,8 +22,8 @@ function ChainNotice() {
 
   if (status.state === "offline") {
     return (
-      <Notice tone="danger" title="The local blockchain is not available">
-        Start it with <Command>npm run blockchain</Command> and deploy the contract with{" "}
+      <Notice tone="danger" title="A blockchain local não está disponível">
+        Inicie-a com <Command>npm run blockchain</Command> e implante o contrato com{" "}
         <Command>npm run setup</Command>.
       </Notice>
     );
@@ -31,9 +31,9 @@ function ChainNotice() {
 
   if (status.state === "online" && !status.isContractDeployed) {
     return (
-      <Notice tone="warning" title="ProductPass contract not found">
-        No contract at <MonoValue value={PRODUCT_PASS_ADDRESS} format="address" />. Run{" "}
-        <Command>npm run setup</Command> to deploy it on this blockchain.
+      <Notice tone="warning" title="Contrato ProductPass não encontrado">
+        Nenhum contrato em <MonoValue value={PRODUCT_PASS_ADDRESS} format="address" />. Execute{" "}
+        <Command>npm run setup</Command> para implantá-lo nesta blockchain.
       </Notice>
     );
   }
@@ -46,9 +46,9 @@ function WalletNotice() {
 
   if (wallet.status === "unavailable") {
     return (
-      <Notice tone="info" title="MetaMask is not installed">
-        You can still look up products and browse the explorer. Install MetaMask to register
-        operations.
+      <Notice tone="info" title="A MetaMask não está instalada">
+        Você ainda pode consultar produtos e navegar pelo explorador. Instale a MetaMask para
+        registrar operações.
       </Notice>
     );
   }
@@ -57,10 +57,10 @@ function WalletNotice() {
     return (
       <Notice
         tone="warning"
-        title="MetaMask is connected to the wrong network"
-        action={<Button onClick={wallet.switchNetwork}>Switch to {LOCAL_NETWORK_NAME}</Button>}
+        title="A MetaMask está conectada à rede errada"
+        action={<Button onClick={wallet.switchNetwork}>Trocar para {LOCAL_NETWORK_NAME}</Button>}
       >
-        Transactions must be sent to {LOCAL_NETWORK_NAME} (chain ID {EXPECTED_CHAIN_ID}).
+        As transações devem ser enviadas para {LOCAL_NETWORK_NAME} (chain ID {EXPECTED_CHAIN_ID}).
       </Notice>
     );
   }

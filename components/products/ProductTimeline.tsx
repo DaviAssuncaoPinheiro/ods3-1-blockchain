@@ -1,6 +1,7 @@
-import { HISTORY_EVENT_LABELS } from "@/constants/product";
+import { HISTORY_EVENT_LABELS, PRODUCT_STATUS_LABELS } from "@/constants/product";
 import { formatDateTime } from "@/lib/utils/format";
 import type { HistoryEventType, ProductHistoryEvent } from "@/types/product";
+import { ParticipantValue } from "@/components/participants/ParticipantValue";
 import { MonoValue } from "@/components/ui/MonoValue";
 import { Panel } from "@/components/ui/Panel";
 import { PackageIcon, TagIcon, WrenchIcon } from "@/components/ui/icons";
@@ -14,8 +15,8 @@ const EVENT_ICONS: Record<HistoryEventType, typeof PackageIcon> = {
 export function ProductTimeline({ events }: { events: ProductHistoryEvent[] }) {
   return (
     <Panel
-      title="Product history"
-      description="Every event below was recorded by a blockchain transaction and cannot be changed."
+      title="Histórico do produto"
+      description="Cada evento abaixo foi gravado por uma transação na blockchain e não pode ser alterado."
     >
       <ol>
         {events.map((event, index) => (
@@ -50,16 +51,18 @@ function TimelineItem({ event, isLast }: { event: ProductHistoryEvent; isLast: b
         </div>
         {event.details && <p className="mt-1 text-sm">{event.details}</p>}
         <dl className="mt-3 grid gap-x-4 gap-y-1 text-sm sm:grid-cols-[7rem_minmax(0,1fr)]">
-          <dt className="text-ink-muted">Responsible</dt>
+          <dt className="text-ink-muted">Status</dt>
+          <dd>{PRODUCT_STATUS_LABELS[event.status]}</dd>
+          <dt className="text-ink-muted">Responsável</dt>
           <dd>
-            <MonoValue value={event.actor} />
+            <ParticipantValue address={event.actor} />
           </dd>
-          <dt className="text-ink-muted">Transaction</dt>
+          <dt className="text-ink-muted">Transação</dt>
           <dd>
             {event.transactionHash ? (
               <MonoValue value={event.transactionHash} format="hash" />
             ) : (
-              <span className="text-ink-muted">Not available</span>
+              <span className="text-ink-muted">Não disponível</span>
             )}
           </dd>
         </dl>

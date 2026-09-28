@@ -32,6 +32,7 @@ interface RawProduct {
 
 interface RawHistoryEntry {
   eventType: bigint;
+  status: bigint;
   actor: string;
   timestamp: bigint;
   details: string;
@@ -114,6 +115,7 @@ function toProduct(raw: RawProduct): Product {
 function toHistoryEvent(raw: RawHistoryEntry): Omit<ProductHistoryEvent, "transactionHash"> {
   return {
     type: HISTORY_EVENT_TYPES[Number(raw.eventType)],
+    status: PRODUCT_STATUSES[Number(raw.status)],
     actor: raw.actor,
     timestamp: fromUnixSeconds(raw.timestamp),
     details: raw.details,

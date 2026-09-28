@@ -3,8 +3,8 @@ export const LATEST_TRANSACTIONS_COUNT = 20;
 export const DASHBOARD_ACTIVITY_COUNT = 5;
 
 export const APPLICATION_EVENT_LABELS = {
-  RoleGranted: "Role Granted",
-  ProductRegistered: "Product Registered",
-  ProductSold: "Product Sold",
-  MaintenanceRegistered: "Maintenance Registered",
+  RoleGranted: "Papel concedido",
+  ProductRegistered: "Produto registrado",
+  ProductSold: "Produto vendido",
+  MaintenanceRegistered: "Manutenção registrada",
 } as const;

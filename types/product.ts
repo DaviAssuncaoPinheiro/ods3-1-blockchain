@@ -19,6 +19,8 @@ export interface Product {
 
 export interface ProductHistoryEvent {
   type: HistoryEventType;
+  /** Product status right after this event. */
+  status: ProductStatus;
   actor: string;
   timestamp: Date;
   details: string;

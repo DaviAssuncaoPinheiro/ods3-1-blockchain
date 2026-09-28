@@ -13,10 +13,10 @@ export function NetworkIndicator() {
   const { status } = useChainStatus();
   const label =
     status.state === "online"
-      ? `${LOCAL_NETWORK_NAME} · block ${status.blockNumber}`
+      ? `${LOCAL_NETWORK_NAME} · bloco ${status.blockNumber}`
       : status.state === "offline"
-        ? "Blockchain offline"
-        : "Checking network…";
+        ? "Blockchain fora do ar"
+        : "Verificando a rede…";
 
   return (
     <p className="flex items-center gap-2 text-sm text-ink-muted" aria-live="polite">

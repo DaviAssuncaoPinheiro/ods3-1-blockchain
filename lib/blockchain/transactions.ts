@@ -23,6 +23,7 @@ export interface RegisterMaintenanceInput {
 export interface GrantRoleInput {
   account: string;
   role: Role;
+  name: string;
 }
 
 export function registerProduct(
@@ -48,7 +49,7 @@ export function registerMaintenance(
 
 export function grantRole(
   signer: Signer,
-  { account, role }: GrantRoleInput,
+  { account, role, name }: GrantRoleInput,
 ): Promise<ContractTransactionResponse> {
-  return getProductPassContract(signer).grantRole(account, role);
+  return getProductPassContract(signer).grantRole(account, role, name);
 }

@@ -22,14 +22,17 @@ export async function connectToNetwork(): Promise<Connection> {
     await connection.ethers.provider.getBlockNumber();
   } catch {
     throw new Error(
-      `Blockchain "${connection.networkName}" is not reachable. Start it with "npm run blockchain".`,
+      `A blockchain "${connection.networkName}" não está acessível. Inicie-a com "npm run blockchain".`,
     );
   }
   return connection;
 }
 
-export async function deployProductPass(connection: Connection): Promise<ProductPass> {
-  const productPass = await connection.ethers.deployContract(CONTRACT_NAME);
+export async function deployProductPass(
+  connection: Connection,
+  adminName: string,
+): Promise<ProductPass> {
+  const productPass = await connection.ethers.deployContract(CONTRACT_NAME, [adminName]);
   await productPass.waitForDeployment();
 
   const receipt = await productPass.deploymentTransaction()?.wait();
@@ -41,7 +44,7 @@ export async function deployProductPass(connection: Connection): Promise<Product
   };
 
   await saveFrontendFiles(deployment);
-  console.log(`ProductPass deployed at ${deployment.address} (chain ${deployment.chainId})`);
+  console.log(`ProductPass implantado em ${deployment.address} (chain ${deployment.chainId})`);
   return productPass;
 }
 

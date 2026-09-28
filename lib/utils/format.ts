@@ -1,12 +1,12 @@
 const ADDRESS_VISIBLE_CHARS = 4;
 const HASH_VISIBLE_CHARS = 6;
 
-const dateTimeFormatter = new Intl.DateTimeFormat("en-US", {
+const dateTimeFormatter = new Intl.DateTimeFormat("pt-BR", {
   dateStyle: "medium",
   timeStyle: "short",
 });
 
-const dateFormatter = new Intl.DateTimeFormat("en-US", { dateStyle: "medium" });
+const dateFormatter = new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium" });
 
 export function formatDateTime(date: Date): string {
   return dateTimeFormatter.format(date);

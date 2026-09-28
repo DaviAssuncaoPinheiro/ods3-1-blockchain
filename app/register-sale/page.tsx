@@ -11,10 +11,10 @@ export default function RegisterSalePage() {
   return (
     <>
       <PageHeader
-        title="Register Sale"
-        description="Retailers record the sale of a registered product. The warranty period starts at the sale and each product can be sold only once."
+        title="Registrar venda"
+        description="Varejistas registram a venda de um produto já registrado. A garantia começa na venda e cada produto só pode ser vendido uma vez."
       />
-      <Panel title="Sale data" description="Requires the Retailer role.">
+      <Panel title="Dados da venda" description="Requer o papel Varejista.">
         <Suspense>
           <SaleFormWithParams />
         </Suspense>

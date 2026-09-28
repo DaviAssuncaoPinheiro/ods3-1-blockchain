@@ -3,26 +3,26 @@ import { isError } from "ethers";
 import { describeContractError } from "./contractErrors";
 
 const METAMASK_REQUEST_PENDING_CODE = -32002;
-const FALLBACK_MESSAGE = "Something went wrong. Please try again.";
+const FALLBACK_MESSAGE = "Algo deu errado. Tente novamente.";
 
 export class UserFacingError extends Error {}
 
 export function toUserMessage(error: unknown): string {
   if (error instanceof UserFacingError) return error.message;
   if (isError(error, "ACTION_REJECTED") || hasCode(error, 4001)) {
-    return "The request was rejected in the wallet.";
+    return "A solicitação foi recusada na carteira.";
   }
   if (hasCode(error, METAMASK_REQUEST_PENDING_CODE)) {
-    return "A wallet request is already open. Check MetaMask.";
+    return "Já existe uma solicitação aberta na carteira. Verifique a MetaMask.";
   }
 
   const contractMessage = describeContractError(error);
   if (contractMessage) return contractMessage;
 
   if (isError(error, "NETWORK_ERROR") || isError(error, "SERVER_ERROR") || isFetchFailure(error)) {
-    return "The local blockchain is not reachable. Start it with npm run blockchain.";
+    return "A blockchain local não está acessível. Inicie-a com npm run blockchain.";
   }
-  if (isError(error, "CALL_EXCEPTION")) return "The contract rejected the operation.";
+  if (isError(error, "CALL_EXCEPTION")) return "O contrato rejeitou a operação.";
   return FALLBACK_MESSAGE;
 }
 

@@ -11,10 +11,10 @@ export default function RegisterMaintenancePage() {
   return (
     <>
       <PageHeader
-        title="Register Maintenance"
-        description="Service centers add maintenance records to a product's history. Each record keeps the responsible address and the time of the service."
+        title="Registrar manutenção"
+        description="Assistências técnicas adicionam registros de manutenção ao histórico do produto. Cada registro guarda o responsável e o horário do serviço."
       />
-      <Panel title="Maintenance data" description="Requires the Service Center role.">
+      <Panel title="Dados da manutenção" description="Requer o papel Assistência técnica.">
         <Suspense>
           <MaintenanceFormWithParams />
         </Suspense>

@@ -14,25 +14,25 @@ export function NetworkMetrics({ totalTransactions }: { totalTransactions: numbe
   const totalProducts = useChainQuery(fetchTotalProducts);
 
   const networkValue =
-    status.state === "online" ? "Online" : status.state === "offline" ? "Offline" : UNKNOWN_VALUE;
+    status.state === "online" ? "No ar" : status.state === "offline" ? "Fora do ar" : UNKNOWN_VALUE;
   const networkDetail =
     status.state === "online"
-      ? `${LOCAL_NETWORK_NAME} · chain ${status.chainId} · block #${status.blockNumber}`
-      : "Run npm run blockchain to start it";
+      ? `${LOCAL_NETWORK_NAME} · chain ${status.chainId} · bloco #${status.blockNumber}`
+      : "Execute npm run blockchain para iniciá-la";
 
   return (
     <div className="grid gap-4 sm:grid-cols-3">
       <MetricTile
-        label="Total products"
+        label="Total de produtos"
         value={totalProducts.data ?? UNKNOWN_VALUE}
-        detail="Registered passports"
+        detail="Passaportes registrados"
       />
       <MetricTile
-        label="Total transactions"
+        label="Total de transações"
         value={totalTransactions ?? UNKNOWN_VALUE}
-        detail="Sent to the ProductPass contract"
+        detail="Enviadas ao contrato ProductPass"
       />
-      <MetricTile label="Blockchain network" value={networkValue} detail={networkDetail} />
+      <MetricTile label="Rede blockchain" value={networkValue} detail={networkDetail} />
     </div>
   );
 }

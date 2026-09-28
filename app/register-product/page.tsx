@@ -6,10 +6,10 @@ export default function RegisterProductPage() {
   return (
     <>
       <PageHeader
-        title="Register Product"
-        description="Manufacturers create the product's digital passport. The product ID must be unique on the blockchain."
+        title="Registrar produto"
+        description="Fabricantes criam o passaporte digital do produto. O ID do produto deve ser único na blockchain."
       />
-      <Panel title="Product data" description="Requires the Manufacturer role.">
+      <Panel title="Dados do produto" description="Requer o papel Fabricante.">
         <RegisterProductForm />
       </Panel>
     </>

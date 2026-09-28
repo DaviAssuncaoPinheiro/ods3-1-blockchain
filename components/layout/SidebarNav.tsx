@@ -9,7 +9,7 @@ export function SidebarNav() {
   const pathname = usePathname();
 
   return (
-    <nav aria-label="Main" className="flex gap-6 overflow-x-auto md:flex-col md:overflow-visible">
+    <nav aria-label="Principal" className="flex gap-6 overflow-x-auto md:flex-col md:overflow-visible">
       {NAVIGATION.map((group) => (
         <div key={group.title} className="shrink-0">
           <p className="mb-2 hidden px-3 text-xs font-medium text-ink-muted md:block">

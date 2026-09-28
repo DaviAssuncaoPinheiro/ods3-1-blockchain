@@ -4,11 +4,11 @@ import { DataTable, NUMERIC_CELL_CLASSES, type DataTableColumn } from "@/compone
 import { MonoValue } from "@/components/ui/MonoValue";
 
 const COLUMNS: DataTableColumn[] = [
-  { label: "Block" },
+  { label: "Bloco" },
   { label: "Hash" },
-  { label: "Previous hash" },
-  { label: "Timestamp" },
-  { label: "Transactions", isNumeric: true },
+  { label: "Hash anterior" },
+  { label: "Data e hora" },
+  { label: "Transações", isNumeric: true },
 ];
 
 export function BlockTable({ blocks }: { blocks: BlockSummary[] }) {
